@@ -1,13 +1,17 @@
 import Navigation from '@/components/navigation'
 import Footer from '@/components/footer'
 import VoiceAgent from '@/components/voice-agent'
+import { FlowingLines } from '@/components/flowing-lines'
 
 export default function ContactPage() {
   return (
     <>
       <Navigation />
-      <main className="relative bg-background pt-32 pb-24 min-h-screen">
-        <div className="max-w-4xl mx-auto px-8">
+      <main className="relative bg-background pt-32 pb-24 min-h-screen overflow-hidden">
+        {/* Flowing Lines Animation */}
+        <FlowingLines />
+
+        <div className="max-w-4xl mx-auto px-8 relative z-10">
           <h1 className="font-eb-garamond font-bold text-foreground mb-8 lowercase text-6xl text-center">
             let's build something that matters
           </h1>
