@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { Mic, MicOff, PhoneCall, PhoneOff } from 'lucide-react'
+import { Mic, MicOff, PhoneCall, PhoneOff, Loader2 } from 'lucide-react'
 
 interface ConversationMessage {
   role: 'user' | 'assistant'
@@ -14,6 +14,7 @@ export default function VoiceAgent() {
   const [isMuted, setIsMuted] = useState(false)
   const [conversation, setConversation] = useState<ConversationMessage[]>([])
   const [status, setStatus] = useState<'idle' | 'connecting' | 'connected' | 'disconnected'>('idle')
+  const [userEmail, setUserEmail] = useState<string>('')
   const conversationRef = useRef<any>(null)
 
   useEffect(() => {
@@ -68,8 +69,31 @@ export default function VoiceAgent() {
         },
         // Send conversation transcript to Slack when it ends
         onEnd: async (transcript: any) => {
-          await sendToSlack(conversation)
-        }
+          await sendToSlack(conversation, userEmail)
+        },
+        // Custom tools for email collection
+        customTools: [
+          {
+            name: 'collect_email',
+            description: 'Collect user email address for follow-up',
+            parameters: {
+              type: 'object',
+              properties: {
+                email: {
+                  type: 'string',
+                  description: 'User email address'
+                }
+              },
+              required: ['email']
+            },
+            handler: async (params: { email: string }) => {
+              setUserEmail(params.email)
+              // Send confirmation email
+              await sendConfirmationEmail(params.email)
+              return { success: true, message: 'Email collected successfully' }
+            }
+          }
+        ]
       })
 
       conversationRef.current = conversation
@@ -95,7 +119,7 @@ export default function VoiceAgent() {
     }
   }
 
-  const sendToSlack = async (messages: ConversationMessage[]) => {
+  const sendToSlack = async (messages: ConversationMessage[], email: string) => {
     if (messages.length === 0) return
 
     const transcript = messages
@@ -106,10 +130,22 @@ export default function VoiceAgent() {
       await fetch('/api/voice-transcript', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ transcript })
+        body: JSON.stringify({ transcript, email })
       })
     } catch (error) {
       console.error('Failed to send transcript to Slack:', error)
+    }
+  }
+
+  const sendConfirmationEmail = async (email: string) => {
+    try {
+      await fetch('/api/send-confirmation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      })
+    } catch (error) {
+      console.error('Failed to send confirmation email:', error)
     }
   }
 
@@ -132,8 +168,17 @@ export default function VoiceAgent() {
               disabled={status === 'connecting'}
               className="group relative flex items-center gap-3 bg-foreground text-background px-8 py-4 rounded-full font-stack-sans font-semibold lowercase hover:bg-foreground/90 transition-all disabled:opacity-50"
             >
-              <PhoneCall className="w-5 h-5" />
-              {status === 'connecting' ? 'connecting...' : 'start conversation'}
+              {status === 'connecting' ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  connecting...
+                </>
+              ) : (
+                <>
+                  <PhoneCall className="w-5 h-5" />
+                  start conversation
+                </>
+              )}
             </button>
           ) : (
             <div className="flex gap-4">
@@ -190,14 +235,13 @@ export default function VoiceAgent() {
         )}
       </div>
 
-      <div className="mt-4 text-center">
-        <p className="font-stack-sans text-foreground/50 text-sm lowercase">
-          prefer typing?{' '}
-          <a href="#contact-form" className="underline hover:text-foreground transition-colors">
-            use the form below
-          </a>
-        </p>
-      </div>
+      {userEmail && (
+        <div className="mt-6 p-4 bg-green-500/10 border border-green-500/20 rounded-lg text-center">
+          <p className="font-stack-sans text-green-600 lowercase">
+            ✓ confirmation sent to {userEmail}
+          </p>
+        </div>
+      )}
     </div>
   )
 }

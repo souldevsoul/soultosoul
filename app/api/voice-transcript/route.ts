@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 
 export async function POST(request: Request) {
   try {
-    const { transcript } = await request.json()
+    const { transcript, email } = await request.json()
 
     if (!transcript) {
       return NextResponse.json(
@@ -32,11 +32,20 @@ export async function POST(request: Request) {
             emoji: true
           }
         },
+        ...(email ? [{
+          type: 'section',
+          fields: [
+            {
+              type: 'mrkdwn',
+              text: `*Email:*\n${email}`
+            }
+          ]
+        }] : []),
         {
           type: 'section',
           text: {
             type: 'mrkdwn',
-            text: transcript
+            text: `*Transcript:*\n\n${transcript}`
           }
         },
         {
