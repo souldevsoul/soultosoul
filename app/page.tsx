@@ -3,15 +3,21 @@
 import { useState } from 'react'
 import Navigation from '@/components/navigation'
 import Footer from '@/components/footer'
+import { FlowingLines } from '@/components/flowing-lines'
+import { WelcomeAudio } from '@/components/welcome-audio'
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<'others' | 'ours'>('others')
   return (
     <>
       <Navigation />
+      <WelcomeAudio />
       <main className="relative bg-background">
         {/* Hero Section */}
         <section className="h-screen flex flex-col justify-center items-center relative overflow-hidden px-8 bg-background">
+          {/* Flowing Lines Animation */}
+          <FlowingLines />
+
           {/* Hero Content */}
           <div className="relative z-10 text-center max-w-7xl mx-auto">
             {/* Oversized SOULTOSOUL Title */}
