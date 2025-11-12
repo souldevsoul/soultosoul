@@ -1,6 +1,7 @@
 import Navigation from '@/components/navigation'
 import Footer from '@/components/footer'
 import ContactForm from '@/components/contact-form'
+import VoiceAgent from '@/components/voice-agent'
 
 export default function ContactPage() {
   return (
@@ -15,7 +16,15 @@ export default function ContactPage() {
             ready to ship faster, build better, and stop burning out?
           </p>
 
-          <ContactForm />
+          {/* Voice Agent Section */}
+          <div className="mb-16">
+            <VoiceAgent />
+          </div>
+
+          {/* Contact Form Section */}
+          <div id="contact-form">
+            <ContactForm />
+          </div>
         </div>
       </main>
       <Footer />
